@@ -21,9 +21,15 @@ export default function HomePage() {
           </Link>
           <Link
             to="/correction"
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-200 text-gray-800 font-medium rounded-lg shadow-md hover:bg-gray-300 transition duration-200 text-sm sm:text-base"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-green-300 text-gray-800 font-medium rounded-lg shadow-md hover:bg-gray-300 transition duration-200 text-sm sm:text-base"
           >
             Correction
+          </Link>
+          <Link
+            to="/wordlist"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-purple-500 text-white font-medium rounded-lg shadow-md hover:bg-gray-300 transition duration-200 text-sm sm:text-base"
+          >
+            Word List
           </Link>
         </div>
       </div>

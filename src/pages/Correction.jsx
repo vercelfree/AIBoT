@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Send, Languages, BookOpen, Loader2, Copy, Check } from 'lucide-react';
+import { Send, Languages, BookOpen, Loader2, Copy, Check, Plus, List } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Correction = () => {
   const [inputText, setInputText] = useState('');
@@ -8,6 +9,8 @@ const Correction = () => {
   const [corrections, setCorrections] = useState(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [addedWords, setAddedWords] = useState(new Set());
+  const navigate = useNavigate();
 
   const translateText = async () => {
     if (!inputText.trim()) return;
@@ -106,6 +109,38 @@ const Correction = () => {
     }
   };
 
+  const addWordToList = (word) => {
+    try {
+      // Get existing words from localStorage
+      const existingWords = JSON.parse(localStorage.getItem('savedWords') || '[]');
+      
+      // Check if word already exists
+      const wordExists = existingWords.some(
+        savedWord => savedWord.english.toLowerCase() === word.english.toLowerCase()
+      );
+
+      if (!wordExists) {
+        const newWord = {
+          id: Date.now(),
+          english: word.english,
+          bangla: word.bangla,
+          addedAt: new Date().toISOString()
+        };
+
+        const updatedWords = [...existingWords, newWord];
+        localStorage.setItem('savedWords', JSON.stringify(updatedWords));
+        
+        // Update local state to show word is added
+        setAddedWords(prev => new Set([...prev, word.english.toLowerCase()]));
+        
+        // Show success feedback (optional)
+        console.log('Word added successfully!');
+      }
+    } catch (error) {
+      console.error('Error adding word:', error);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -113,21 +148,35 @@ const Correction = () => {
     }
   };
 
+  const goToWordList = () => {
+    navigate('/wordlist');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg">
         <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-3 rounded-xl">
-              <Languages className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-3 rounded-xl">
+                <Languages className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                  English Sentence Corrector
+                </h1>
+                <p className="text-gray-600 text-sm">Powered by Black AI</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                English Sentence Corrector
-              </h1>
-              <p className="text-gray-600 text-sm">Powered by Black AI</p>
-            </div>
+            
+            <button
+              onClick={goToWordList}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              <List className="w-5 h-5" />
+              My Words
+            </button>
           </div>
         </div>
       </div>
@@ -251,13 +300,30 @@ const Correction = () => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Word by Word Meanings</h3>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {wordMeanings.map((word, index) => (
-                    <div key={index} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 hover:shadow-md transition-shadow">
+                    <div key={index} className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 hover:shadow-md transition-shadow relative">
                       <div className="text-sm font-semibold text-gray-700 mb-1">
                         {word.english}
                       </div>
-                      <div className="text-purple-700 font-medium">
+                      <div className="text-purple-700 font-medium mb-3">
                         {word.bangla}
                       </div>
+                      
+                      <button
+                        onClick={() => addWordToList(word)}
+                        disabled={addedWords.has(word.english.toLowerCase())}
+                        className={`absolute top-2 right-2 p-1.5 rounded-full transition-all duration-300 ${
+                          addedWords.has(word.english.toLowerCase())
+                            ? 'bg-green-100 text-green-600 cursor-not-allowed'
+                            : 'bg-white hover:bg-emerald-50 text-emerald-600 hover:text-emerald-700 shadow-md hover:shadow-lg'
+                        }`}
+                        title={addedWords.has(word.english.toLowerCase()) ? 'Word already added' : 'Add to word list'}
+                      >
+                        {addedWords.has(word.english.toLowerCase()) ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
                   ))}
                 </div>
